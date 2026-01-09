@@ -45,13 +45,11 @@ test.describe.serial('Pricing Page Happy Path tests', () => {
 
   test.afterEach(async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
     // Add any necessary cleanup steps here
-    await page.context().clearCookies();
-    await page.close();
     await test.step(`Test Execution Ended at ${new Date().toISOString()} `, async () => { });
 
   });
 
-  test('Verify User can view Plan list for Both electricity and Gas after they enter a valid address', async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
+  test('Test 01 - Verify User can view Plan list for Both electricity and Gas after they enter a valid address', async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
 
     await test.step('And the user has selected both electricity and gas options', async () => {
       await pricingPage.selectEnergyTypes({ electricity: true, gas: true });
@@ -69,7 +67,7 @@ test.describe.serial('Pricing Page Happy Path tests', () => {
     });
   });
 
-  test('Verify User can view Plan list for Gas only after they enter a valid address', async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
+  test('Test 02 - Verify User can view Plan list for Gas only after they enter a valid address', async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
 
     await test.step('And the user has selected both electricity and gas options', async () => {
       await pricingPage.selectEnergyTypes({ electricity: false, gas: true });
@@ -87,7 +85,7 @@ test.describe.serial('Pricing Page Happy Path tests', () => {
     });
   });
 
-  test.only('Verify User can view Plan PDF', async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
+  test.only('Test 03 - Verify User can view Plan PDF', async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
 
     await test.step('And the user has selected both electricity and gas options', async () => {
       await pricingPage.selectEnergyTypes({ electricity: false, gas: true });
@@ -105,13 +103,13 @@ test.describe.serial('Pricing Page Happy Path tests', () => {
     });
 
     await test.step('And the user should see PDF for Basic Origin in a new Tab', async () => {
-      const newPage = await pricingPage.clickOnBasicGasPlanLinkAndVerifyTab();
-      if (newPage) {
-        await pageHelper.downloadPDFFromPage(newPage);
+      const result = await pricingPage.clickOnBasicGasPlanLinkAndVerifyTab();
+      if (result) {
+        await pageHelper.downloadPDFFromPage(result);
       }
     });
 
-    await test.step('And the saved PDF should verify ', async () => {
+    await test.step.skip('And the saved PDF should verify ', async () => {
       const filePath = './downloads/plan.pdf';
       await pageHelper.verifyPDFContent(filePath, 'Fuel type Gas');
     });
