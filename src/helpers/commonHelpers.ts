@@ -15,22 +15,46 @@ export class PageHelper {
     }
   }
 
-  async downloadPDFFromPage(page: any) {
-    const pdfUrl = page.url();
-    console.log('PDF URL:', pdfUrl);
-    // Download via API
-    const response = await page.context().request.get(pdfUrl);
-    console.log('Response status:', response.status());
-    if (!response.ok()) {
-      throw new Error(`Failed to download PDF: ${response.status()} ${response.statusText()}`);
-    }
-    const pdf = await response.body();
+  async downloadPDFFromPage(result: any) {
     const filePath = './downloads/plan.pdf';
-    // Create downloads directory if it doesn't exist
-    await fs.promises.writeFile(filePath, pdf);
-    console.log('PDF saved to:', filePath);
-    await page.close();
-    return filePath;
+    
+    // Handle download object (headless mode)
+    if (result.type === 'download') {
+      console.log('Processing download object (headless mode)');
+      await result.data.saveAs(filePath);
+      console.log('PDF saved to:', filePath);
+      return filePath;
+    }
+    
+    // Handle page object (headed mode)
+    if (result.type === 'page') {
+      const page = result.data;
+      await page.waitForLoadState('load');
+      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      
+      const pdfUrl = page.url();
+      console.log('PDF URL:', pdfUrl);
+      
+      // Validate URL before making request
+      if (!pdfUrl || pdfUrl === 'about:blank' || pdfUrl.startsWith('blob:') || pdfUrl.startsWith('data:')) {
+        throw new Error(`Invalid or unsupported URL for API request: ${pdfUrl}`);
+      }
+      
+      // Download via API
+      const response = await page.context().request.get(pdfUrl);
+      console.log('Response status:', response.status());
+      if (!response.ok()) {
+        throw new Error(`Failed to download PDF: ${response.status()} ${response.statusText()}`);
+      }
+      const pdf = await response.body();
+      // Create downloads directory if it doesn't exist
+      await fs.promises.writeFile(filePath, pdf);
+      console.log('PDF saved to:', filePath);
+      await page.close();
+      return filePath;
+    }
+    
+    throw new Error('Invalid result type');
   }
 
   async verifyPDFContent(filePath: string, searchText: string) {

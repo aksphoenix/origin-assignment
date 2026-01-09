@@ -67,37 +67,36 @@ export class PricingPage {
   }
 
   async clickOnBasicGasPlanLinkAndVerifyTab() {
-    const newTabPromise = this.page.waitForEvent('popup');
+    // Listen for both popup and download events
+    const popupPromise = this.page.waitForEvent('popup', { timeout: 10000 }).catch(() => null);
+    const downloadPromise = this.page.waitForEvent('download', { timeout: 10000 }).catch(() => null);
+    
     await this.basicGasPlanLink_l.first().isEnabled();
     await this.basicGasPlanLink_l.first().click();
-    const newPage = await newTabPromise;
-
-    const title = await newPage.title();
-    console.log('PDF page title:', title);
-    // verify new page title
-    if (title && title.length > 0) {
-      await expect(newPage).toHaveTitle(/Victorian Energy Fact Sheet - Offer OR.*/);
+    
+    // Wait for either event to occur
+    const [popup, download] = await Promise.all([popupPromise, downloadPromise]);
+    
+    // Headless mode - download triggered
+    if (download) {
+      console.log('PDF download triggered (headless mode)');
+      return { type: 'download', data: download };
     }
-    await this.pageHelper.captureScreenClip(this.page, 'PDF', null);
-    return newPage;
-
-
-    // const pdfUrl = newPage.url();
-    // console.log('PDF URL:', pdfUrl);
-    // // Download via API
-    // const response = await newPage.context().request.get(pdfUrl);
-    // console.log('Response status:', response.status());
-    // if (!response.ok()) {
-    //   throw new Error(`Failed to download PDF: ${response.status()} ${response.statusText()}`);
-    // }
-    // const pdf = await response.body();
-    // const filePath = './downloads/plan.pdf';
-    // // Create downloads directory if it doesn't exist
-    // const fs = require('fs');
-    // await fs.promises.writeFile(filePath, pdf);
-    // console.log('PDF saved to:', filePath);
-    // await newPage.close();
-    // return filePath;
+    
+    // Headed mode - popup triggered
+    if (popup) {
+      await popup.waitForLoadState('load', { timeout: 10000 }).catch(() => {});
+      const title = await popup.title();
+      console.log('PDF page title:', title);
+      // verify new page title
+      if (title && title.length > 0) {
+        await expect(popup).toHaveTitle(/Victorian Energy Fact Sheet - Offer OR.*/);
+      }
+      await this.pageHelper.captureScreenClip(this.page, 'PDF', null);
+      return { type: 'page', data: popup };
+    }
+    
+    throw new Error('Neither popup nor download was triggered');
   }
 
 }
