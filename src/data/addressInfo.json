@@ -1,0 +1,13 @@
+{
+    "validAddresses": [
+        "17 Bolinda Road, Balwyn North, VIC 3104",
+        "456 George St, Melbourne VIC 3000",
+        "789 Queen St, Brisbane QLD 4000"
+    ],
+    "invalidAddresses": [
+        "Invalid Address",
+        "123",
+        "",
+        "Nonexistent St, Fake City ABC 9999"
+    ]
+}
