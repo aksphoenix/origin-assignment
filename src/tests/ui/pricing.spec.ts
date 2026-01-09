@@ -85,7 +85,7 @@ test.describe.serial('Pricing Page Happy Path tests', () => {
     });
   });
 
-  test.only('Test 03 - Verify User can view Plan PDF', async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
+  test('Test 03 - Verify User can view Plan PDF', async ({ page, pricingPage, pageHelper }, testInfo: TestInfo) => {
 
     await test.step('And the user has selected both electricity and gas options', async () => {
       await pricingPage.selectEnergyTypes({ electricity: false, gas: true });
